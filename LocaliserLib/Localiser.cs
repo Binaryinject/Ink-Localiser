@@ -126,6 +126,10 @@ namespace InkLocaliser
             int lastLineNumber = -1;
             foreach(var text in story.FindAll<Text>())
             {
+                //command Ignore.
+                if (text.text.Contains('@'))
+                    continue;
+                
                 // Just a newline? Ignore.
                 if (text.text.Trim()=="")
                     continue;
