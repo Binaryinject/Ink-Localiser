@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\ndocs: 更新开发流程伪代码，使用 DryDB 替代 CSV 加载\n\n- 将示例代码从 StringTable/CSV 加载改为 DryDB 数据库加载\n- 使用 ReadOnlyDatabase.OpenFileAsync\\(\\) 加载 DryDB 文件\n- 使用 table.Get\\(\\) 直接查询字符串（string key）\n- 添加 UTF-8 解码步骤\n- 同步更新中英文版本\n\nCo-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push)",
+      "Bash(gh repo view:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

@@ -1,23 +1,23 @@
 using System;
 using System.IO;
 using System.Text;
-using VKV;
-using VKV.Compression;
+using DryDB;
+using DryDB.Compression;
 
 namespace InkLocaliser
 {
-    public class VKVHandler(Localiser localiser, VKVHandler.Options options) {
+    public class DryDBHandler(Localiser localiser, DryDBHandler.Options options) {
 
         public class Options {
             public string outputFilePath = "";
             public bool compress = true;
-            public string tablePrefix = ""; // Prefix for table names
+            public string tablePrefix = ""; // DryDB table prefix
         }
 
         /// <summary>
-        /// Writes strings as VKV binary format.
-        /// Uses the VKV library to convert strings to optimized B+Tree based key/value database.
-        /// All strings are merged into a single .vkv file with multiple tables (one table per source file).
+        /// Writes strings as DryDB binary format.
+        /// Uses the DryDB library to convert strings to an optimized B+Tree based key/value database.
+        /// All strings are merged into a single .drydb file with multiple tables (one table per source file).
         /// The format supports:
         /// - B+Tree based efficient key-value lookup
         /// - Multiple tables in one database file
@@ -41,11 +41,11 @@ namespace InkLocaliser
                     output.Add(locID, localiser.GetString(locID));
                 }
 
-                // Create a single VKV database file with multiple tables
-                var vkvFilePath = Path.Combine(options.outputFilePath, "strings.vkv");
+                // Create a single DryDB database file with multiple tables
+                var dryDBFilePath = Path.Combine(options.outputFilePath, "strings.drydb");
                 
                 try {
-                    // Create VKV database builder
+                    // Create DryDB database builder
                     var builder = new DatabaseBuilder
                     {
                         PageSize = 4096,
@@ -84,17 +84,17 @@ namespace InkLocaliser
                     }
 
                     // Build to single file
-                    await builder.BuildToFileAsync(vkvFilePath);
+                    await builder.BuildToFileAsync(dryDBFilePath);
 
-                    Console.WriteLine($"VKV database written: {vkvFilePath} (contains {outputs.Count} tables)");
+                    Console.WriteLine($"DryDB database written: {dryDBFilePath} (contains {outputs.Count} tables)");
                 }
                 catch (Exception ex) {
-                    Console.Error.WriteLine($"Error writing VKV database {vkvFilePath}: {ex.Message}");
+                    Console.Error.WriteLine($"Error writing DryDB database {dryDBFilePath}: {ex.Message}");
                     throw;
                 }
             }
             catch (Exception ex) {
-                Console.Error.WriteLine($"Error writing out VKV database: {options.outputFilePath}: " + ex.Message);
+                Console.Error.WriteLine($"Error writing out DryDB database: {options.outputFilePath}: " + ex.Message);
                 return false;
             }
 

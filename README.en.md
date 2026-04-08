@@ -11,7 +11,7 @@
 ## Contents
 - [Overview](#overview)
 - [Command-Line Tool](#command-line-tool)
-- [VKV Database](#vkv-database)
+- [DryDB Database](#drydb-database)
 - [Limitations](#limitations)
 - [Use in Development](#use-in-development)
 - [The ID format](#the-id-format)
@@ -73,37 +73,39 @@ Look for every Ink file starting with `start` in the `inkFiles` folder, process 
 
 - `--json=<jsonFile>`: Path to a JSON file to export all the strings to (relative to working dir). e.g. `--json=output/strings.json`. Default is empty (no JSON).
 
-- `--vkv=<path>`: Output folder for VKV `.vkv` database files. When used together with the normal localisation run, the tool will generate `.vkv` artifacts from the CSV data. Files use Zstandard page compression by default. e.g. `--vkv=output/`.
+- `--drydb=<path>`: Output folder for DryDB `.drydb` database files. When used together with the normal localisation run, the tool will generate `.drydb` artifacts from the CSV data. Files use Zstandard page compression by default. e.g. `--drydb=output/`.
 
-- `--vkv-no-compress`: Disable Zstandard compression for VKV binary files. Use together with `--vkv`.
+- `--drydb-no-compress`: Disable Zstandard compression for DryDB binary files. Use together with `--drydb`.
 
-- `--vkv-table-prefix=<prefix>`: Add a prefix to all table names in the VKV database. e.g. `--vkv-table-prefix=loc_`.
+- `--drydb-table-prefix=<prefix>`: Add a prefix to all table names in the DryDB database. e.g. `--drydb-table-prefix=loc_`.
 
-- `--vkv-csv=<csvFolder>`: Instead of running the Localiser pipeline, convert all CSV files found in the specified folder into VKV `.vkv` files. By default the tool searches folders recursively (all subdirectories). e.g. `--vkv-csv=output/`.
+- `--drydb-csv=<csvFolder>`: Instead of running the Localiser pipeline, convert all CSV files found in the specified folder into DryDB `.drydb` files. By default the tool searches folders recursively (all subdirectories). e.g. `--drydb-csv=output/`.
 
-- `--vkv-csv-out=<outFolder>`: When using `--vkv-csv`, specify the output folder where the generated `.vkv` files will be written. If omitted, `.vkv` files are written next to their source CSV files (same folder).
+- `--drydb-csv-out=<outFolder>`: When using `--drydb-csv`, specify the output folder where the generated `.drydb` files will be written. If omitted, `.drydb` files are written next to their source CSV files (same folder).
 
-- `--only-csv-to-vkv`: Run only the CSV→`.vkv` conversion and exit (skip processing Ink files). Use together with `--vkv-csv` and optionally `--vkv-csv-out`.
+- `--only-csv-to-drydb`: Run only the CSV→`.drydb` conversion and exit (skip processing Ink files). Use together with `--drydb-csv` and optionally `--drydb-csv-out`.
 
 Notes:
-- CSV discovery for `--vkv-csv` is recursive by default (the tool uses `SearchOption.AllDirectories`). If you need non-recursive behaviour, run the conversion against a single folder that contains only the CSVs you want to convert.
-- `--vkv` (without `--vkv-csv`) will generate `.vkv` as part of the normal localisation run (it uses the CSV output produced from the Ink files).
+- CSV discovery for `--drydb-csv` is recursive by default (the tool uses `SearchOption.AllDirectories`). If you need non-recursive behaviour, run the conversion against a single folder that contains only the CSVs you want to convert.
+- `--drydb` (without `--drydb-csv`) will generate `.drydb` as part of the normal localisation run (it uses the CSV output produced from the Ink files).
 
 - `--retag`: Regenerate all localisation tag IDs, rather than keep old IDs.
 
 - `--help`: Show this help.
 
-## VKV Database
+## DryDB Database
 
-### What is VKV?
+### What is DryDB?
 
-VKV (Versioned Key-Value) is a B+Tree based key-value database format optimized for read-only embedded use. It provides an efficient way to store and retrieve localization strings at runtime, especially suitable for game engines and embedded systems.
+DryDB is a B+Tree based key-value database format optimized for read-only embedded use. It provides an efficient way to store and retrieve localization strings at runtime, especially suitable for game engines and embedded systems.
 
-Project repository: [hadashiA/VKV](https://github.com/hadashiA/VKV)
+Project repository: [hadashiA/DryDB](https://github.com/hadashiA/DryDB)
 
-### Why Use VKV?
+Note: this project now uses the `DryDB` package name, command-line arguments, and the `.drydb` file extension consistently.
 
-Compared to CSV or JSON formats, VKV offers several advantages:
+### Why Use DryDB?
+
+Compared to CSV or JSON formats, DryDB offers several advantages:
 
 - **Fast Lookup**: B+Tree structure provides O(log n) lookup time complexity, much faster than linear search in CSV/JSON
 - **Low Memory Footprint**: No need to load the entire file into memory; supports on-demand page loading
@@ -112,24 +114,24 @@ Compared to CSV or JSON formats, VKV offers several advantages:
 
 ### Usage Examples
 
-**Generate VKV during normal localization run:**
+**Generate DryDB during normal localization run:**
 ```bash
-InkTagger.exe --folder=inkFiles/ --csv=output/strings.csv --vkv=output/
+InkTagger.exe --folder=inkFiles/ --csv=output/strings.csv --drydb=output/
 ```
 
-**Convert existing CSV files to VKV:**
+**Convert existing CSV files to DryDB:**
 ```bash
-InkTagger.exe --only-csv-to-vkv --vkv-csv=localization/ --vkv-csv-out=output/
+InkTagger.exe --only-csv-to-drydb --drydb-csv=localization/ --drydb-csv-out=output/
 ```
 
-**Generate uncompressed VKV with table prefix:**
+**Generate uncompressed DryDB with table prefix:**
 ```bash
-InkTagger.exe --folder=inkFiles/ --csv=output/strings.csv --vkv=output/ --vkv-no-compress --vkv-table-prefix=loc_
+InkTagger.exe --folder=inkFiles/ --csv=output/strings.csv --drydb=output/ --drydb-no-compress --drydb-table-prefix=loc_
 ```
 
-### VKV File Structure
+### DryDB File Structure
 
-Each CSV file is converted to a corresponding `.vkv` file. The table name in the VKV database is derived from the CSV filename (with optional prefix). At runtime, you can query the VKV database using the localization ID as the key to retrieve the corresponding text.
+Each CSV file is converted to a corresponding `.drydb` file. The table name in the DryDB database is derived from the CSV filename (with optional prefix). At runtime, you can query the DryDB database using the localization ID as the key to retrieve the corresponding text.
 
 ## Limitations
 As said above, Ink is fully capable of stitching together fragments of sentences, like so:
@@ -170,9 +172,9 @@ In other words - during runtime, just use Ink for logic, not for content. Grab t
 ```csharp
 var story = new Story(storyJsonAsset);
 
-// Load VKV database
-var vkvPath = Path.Combine(Application.streamingAssetsPath, "strings.vkv");
-var database = await ReadOnlyDatabase.OpenFileAsync(vkvPath);
+// Load DryDB database
+var dryDBPath = Path.Combine(Application.streamingAssetsPath, "strings.drydb");
+var database = await ReadOnlyDatabase.OpenFileAsync(dryDBPath);
 var locTable = database.GetTable("your_table_name"); // Table name derived from Ink filename
 
 while (story.canContinue) {

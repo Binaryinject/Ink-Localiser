@@ -1,13 +1,13 @@
 ﻿using InkLocaliser;
-using VKV.Compression;
+using DryDB.Compression;
 
 var options = new Localiser.Options();
 var csvOptions = new CSVHandler.Options();
 var jsonOptions = new JSONHandler.Options();
-var vkvOptions = new VKVHandler.Options();
-var vkvCsvInput = "";
-var vkvCsvOutput = "";
-var onlyCsvToVkv = false;
+var dryDBOptions = new DryDBHandler.Options();
+var dryDBCsvInput = "";
+var dryDBCsvOutput = "";
+var onlyCsvToDryDB = false;
 
 // ----- Simple Args -----
 foreach (var arg in args)
@@ -22,18 +22,18 @@ foreach (var arg in args)
         csvOptions.outputFilePath = arg.Substring(6);
     else if (arg.StartsWith("--json="))
         jsonOptions.outputFilePath = arg.Substring(7);
-    else if (arg.StartsWith("--vkv="))
-        vkvOptions.outputFilePath = arg.Substring(6);
-    else if (arg.Equals("--vkv-no-compress"))
-        vkvOptions.compress = false;
-    else if (arg.StartsWith("--vkv-table-prefix="))
-        vkvOptions.tablePrefix = arg.Substring(19);
-        else if (arg.StartsWith("--vkv-csv="))
-            vkvCsvInput = arg.Substring(10);
-        else if (arg.StartsWith("--vkv-csv-out="))
-            vkvCsvOutput = arg.Substring(14);
-    else if (arg.Equals("--only-csv-to-vkv"))
-        onlyCsvToVkv = true;
+    else if (arg.StartsWith("--drydb="))
+        dryDBOptions.outputFilePath = arg.Substring(9);
+    else if (arg.Equals("--drydb-no-compress"))
+        dryDBOptions.compress = false;
+    else if (arg.StartsWith("--drydb-table-prefix="))
+        dryDBOptions.tablePrefix = arg.Substring(22);
+    else if (arg.StartsWith("--drydb-csv="))
+        dryDBCsvInput = arg.Substring(13);
+    else if (arg.StartsWith("--drydb-csv-out="))
+        dryDBCsvOutput = arg.Substring(17);
+    else if (arg.Equals("--only-csv-to-drydb"))
+        onlyCsvToDryDB = true;
     else if (arg.Equals("--help") || arg.Equals("-h")) {
         Console.WriteLine("InkTagger");
         Console.WriteLine("Arguments:");
@@ -47,23 +47,23 @@ foreach (var arg in args)
         Console.WriteLine("                    Default is empty, so no CSV file will be exported.");
         Console.WriteLine("  --json - Path to a JSON folder to export");
         Console.WriteLine("                      Default is empty, so no JSON file will be exported.");
-        Console.WriteLine("  --vkv - Path to a VKV binary folder to export");
-        Console.WriteLine("                       Default is empty, so no VKV file will be exported.");
-        Console.WriteLine("                       VKV files use B+Tree based key-value database format.");
-        Console.WriteLine("  --vkv-no-compress - Disable page compression for VKV binary files.");
-        Console.WriteLine("                        Use with --vkv parameter.");
-        Console.WriteLine("  --vkv-table-prefix=<prefix> - Add prefix to all table names in VKV database.");
-        Console.WriteLine("                                  Example: --vkv-table-prefix=loc_");
-            Console.WriteLine("  --vkv-csv=<folder> - Scan a folder for CSV files and convert each to .vkv");
-            Console.WriteLine("                         Example: --vkv-csv=translations/csvs");
-            Console.WriteLine("  --vkv-csv-out=<folder> - Optional output folder for converted .vkv files.");
-        Console.WriteLine("  --only-csv-to-vkv - Only run CSV->.vkv conversion and exit (skip Localiser run).");
+        Console.WriteLine("  --drydb - Path to a DryDB (.drydb) output folder");
+        Console.WriteLine("                       Default is empty, so no DryDB file will be exported.");
+        Console.WriteLine("                       DryDB files use a B+Tree based key-value database format.");
+        Console.WriteLine("  --drydb-no-compress - Disable page compression for DryDB binary files.");
+        Console.WriteLine("                           Use with --drydb parameter.");
+        Console.WriteLine("  --drydb-table-prefix=<prefix> - Add prefix to all table names in the DryDB database.");
+        Console.WriteLine("                                     Example: --drydb-table-prefix=loc_");
+        Console.WriteLine("  --drydb-csv=<folder> - Scan a folder for CSV files and convert each to .drydb");
+        Console.WriteLine("                           Example: --drydb-csv=translations/csvs");
+        Console.WriteLine("  --drydb-csv-out=<folder> - Optional output folder for converted .drydb files.");
+        Console.WriteLine("  --only-csv-to-drydb - Only run CSV->.drydb conversion and exit (skip Localiser run).");
         Console.WriteLine("  --retag - Regenerate all localisation tag IDs, rather than keep old IDs.");
         return 0;
     }
 }
 
-// Local function to convert CSV folder to VKV .vkv files
+// Local function to convert a CSV folder to DryDB .drydb files
 async Task<bool> ConvertCsvFolderAsync(string inputFolder, string outputFolder, bool compress) {
     try {
         if (!System.IO.Directory.Exists(inputFolder)) {
@@ -79,9 +79,9 @@ async Task<bool> ConvertCsvFolderAsync(string inputFolder, string outputFolder, 
             return true;
         }
 
-        // Create a single VKV database with multiple tables
-        var vkvFilePath = System.IO.Path.Combine(outputFolder, "strings.vkv");
-        var builder = new VKV.DatabaseBuilder { PageSize = 4096 };
+        // Create a single DryDB database with multiple tables
+        var dryDBFilePath = System.IO.Path.Combine(outputFolder, "strings.drydb");
+        var builder = new DryDB.DatabaseBuilder { PageSize = 4096 };
 
         // Add Zstandard compression if enabled
         if (compress) {
@@ -102,7 +102,7 @@ async Task<bool> ConvertCsvFolderAsync(string inputFolder, string outputFolder, 
                     ? fileName 
                     : $"{relativeDir.Replace("\\", "_").Replace("/", "_")}_{fileName}";
 
-                var table = builder.CreateTable(tableName, VKV.KeyEncoding.Ascii);
+                var table = builder.CreateTable(tableName, DryDB.KeyEncoding.Ascii);
                 
                 // Read and parse CSV file
                 using (var reader = new System.IO.StreamReader(csvFile)) {
@@ -133,9 +133,9 @@ async Task<bool> ConvertCsvFolderAsync(string inputFolder, string outputFolder, 
             }
         }
 
-        // Build the final VKV database
-        await builder.BuildToFileAsync(vkvFilePath);
-        Console.WriteLine($"Converted {csvFiles.Length} CSV files to {vkvFilePath}");
+        // Build the final DryDB database
+        await builder.BuildToFileAsync(dryDBFilePath);
+        Console.WriteLine($"Converted {csvFiles.Length} CSV files to {dryDBFilePath}");
     }
     catch (Exception ex) {
         Console.Error.WriteLine($"Error scanning CSV folder: {ex.Message}");
@@ -173,17 +173,17 @@ string[] ParseCsvLine(string line) {
     return result.ToArray();
 }
 
-// If user requested only CSV->vkv conversion, perform it now and exit.
-if (onlyCsvToVkv)
+// If user requested only CSV->DryDB conversion, perform it now and exit.
+if (onlyCsvToDryDB)
 {
-    if (string.IsNullOrWhiteSpace(vkvCsvInput)) {
-        Console.Error.WriteLine("--only-csv-to-vkv requires --vkv-csv=<folder> to be specified.");
+    if (string.IsNullOrWhiteSpace(dryDBCsvInput)) {
+        Console.Error.WriteLine("--only-csv-to-drydb requires --drydb-csv=<folder> to be specified.");
         return -1;
     }
 
-    var inputFolder = vkvCsvInput;
-    var outputFolder = string.IsNullOrWhiteSpace(vkvCsvOutput) ? vkvCsvInput : vkvCsvOutput;
-    if (!await ConvertCsvFolderAsync(inputFolder, outputFolder, vkvOptions.compress)) return -1;
+    var inputFolder = dryDBCsvInput;
+    var outputFolder = string.IsNullOrWhiteSpace(dryDBCsvOutput) ? dryDBCsvInput : dryDBCsvOutput;
+    if (!await ConvertCsvFolderAsync(inputFolder, outputFolder, dryDBOptions.compress)) return -1;
     return 0;
 }
 
@@ -215,23 +215,23 @@ if (!string.IsNullOrEmpty(jsonOptions.outputFilePath))
     }
 }
 
-// ----- VKV Binary Output -----
-if (!string.IsNullOrEmpty(vkvOptions.outputFilePath))
+// ----- DryDB Binary Output -----
+if (!string.IsNullOrEmpty(dryDBOptions.outputFilePath))
 {
-    var vkvHandler = new VKVHandler(localiser, vkvOptions);
-    if (!vkvHandler.WriteStrings()) {
-        Console.Error.WriteLine("VKV binary file not written.");
+    var dryDBHandler = new DryDBHandler(localiser, dryDBOptions);
+    if (!dryDBHandler.WriteStrings()) {
+        Console.Error.WriteLine("DryDB binary file not written.");
         return -1;
     }
 }
 
-// ----- CSV -> VKV .vkv Conversion -----
-if (!string.IsNullOrEmpty(vkvCsvInput))
+// ----- CSV -> DryDB .drydb Conversion -----
+if (!string.IsNullOrEmpty(dryDBCsvInput))
 {
-    var inputFolder = vkvCsvInput;
-    var outputFolder = string.IsNullOrWhiteSpace(vkvCsvOutput) ? vkvCsvInput : vkvCsvOutput;
+    var inputFolder = dryDBCsvInput;
+    var outputFolder = string.IsNullOrWhiteSpace(dryDBCsvOutput) ? dryDBCsvInput : dryDBCsvOutput;
 
-    if (!await ConvertCsvFolderAsync(inputFolder, outputFolder, vkvOptions.compress)) return -1;
+    if (!await ConvertCsvFolderAsync(inputFolder, outputFolder, dryDBOptions.compress)) return -1;
 }
 
 return 0;

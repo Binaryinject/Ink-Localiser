@@ -1,22 +1,22 @@
-// Unity VKV Usage Example
-// This file shows how to correctly read VKV database in Unity
-// VKV library: https://github.com/hadashiA/VKV
+// Unity DryDB Usage Example
+// This file shows how to correctly read a DryDB database in Unity
+// DryDB repository: https://github.com/hadashiA/DryDB
 
 using System.Text;
 using UnityEngine;
-using VKV;
+using DryDB;
 using Cysharp.Threading.Tasks;
 
-public class VKVLocalizationExample : MonoBehaviour
+public class DryDBLocalizationExample : MonoBehaviour
 {
     private ReadOnlyDatabase database;
     private ReadOnlyTable demoTable;
     
     async UniTask Start()
     {
-        // 1. Load the VKV database file (without compression for Unity)
-        var vkvPath = System.IO.Path.Combine(Application.streamingAssetsPath, "strings.vkv");
-        database = await ReadOnlyDatabase.OpenFileAsync(vkvPath);
+        // 1. Load the DryDB database file (without compression for Unity)
+        var dryDBPath = System.IO.Path.Combine(Application.streamingAssetsPath, "strings.drydb");
+        database = await ReadOnlyDatabase.OpenFileAsync(dryDBPath);
         
         // 2. Get a specific table (e.g., "demo", "test", etc.)
         demoTable = database.GetTable("demo");
@@ -68,16 +68,16 @@ public class VKVLocalizationExample : MonoBehaviour
  *    var valueBytes = table.Get(key);
  * 
  * 
- * GENERATING VKV FOR UNITY:
+ * GENERATING DryDB FOR UNITY:
  * 
  * - Without compression (recommended for Unity):
- *   dotnet run -- --folder=tests --vkv=output --vkv-no-compress
+ *   dotnet run -- --folder=tests --drydb=output --drydb-no-compress
  * 
- * - With compression (requires VKV.Compression in Unity):
- *   dotnet run -- --folder=tests --vkv=output --vkv-compress
- *   Note: Unity project must also install VKV.Compression package
+ * - With compression (enabled by default, requires DryDB.Compression in Unity):
+ *   dotnet run -- --folder=tests --drydb=output
+ *   Note: Unity project must also install DryDB.Compression package
  * 
  * - With table prefix:
- *   dotnet run -- --folder=tests --vkv=output --vkv-table-prefix=loc_
+ *   dotnet run -- --folder=tests --drydb=output --drydb-table-prefix=loc_
  *   Then access as: database.GetTable("loc_demo")
  */

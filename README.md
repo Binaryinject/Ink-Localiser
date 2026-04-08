@@ -11,7 +11,7 @@
 ## 目录
 - [概述](#概述)
 - [命令行工具](#命令行工具)
-- [VKV 数据库](#vkv-数据库)
+- [DryDB 数据库](#drydb-数据库)
 - [限制](#限制)
 - [开发流程](#开发流程)
 - [ID 格式](#id-格式)
@@ -72,33 +72,35 @@ Ink 的设计初衷是拼接文本片段，因此原生并不支持本地化，�
 
 - `--json=<jsonPath>`：JSON 导出路径，如 `--json=output/strings.json`。不指定则不导出。
 
-- `--vkv=<path>`：VKV 数据库输出目录。配合本地化流程使用时，会基于 CSV 生成 `.vkv` 文件，默认启用 Zstandard 压缩。
+- `--drydb=<path>`：DryDB 数据库输出目录。配合本地化流程使用时，会基于 CSV 生成 `.drydb` 文件，默认启用 Zstandard 压缩。
 
-- `--vkv-no-compress`：禁用 VKV 的 Zstandard 压缩。
+- `--drydb-no-compress`：禁用 DryDB 的 Zstandard 压缩。
 
-- `--vkv-table-prefix=<prefix>`：为 VKV 表名添加前缀，如 `--vkv-table-prefix=loc_`。
+- `--drydb-table-prefix=<prefix>`：为 DryDB 表名添加前缀，如 `--drydb-table-prefix=loc_`。
 
-- `--vkv-csv=<csvFolder>`：跳过 Ink 处理，直接将指定目录下的 CSV 文件转换为 VKV。默认递归搜索子目录。
+- `--drydb-csv=<csvFolder>`：跳过 Ink 处理，直接将指定目录下的 CSV 文件转换为 DryDB。默认递归搜索子目录。
 
-- `--vkv-csv-out=<outFolder>`：指定 VKV 输出目录。不指定则输出到 CSV 同级目录。
+- `--drydb-csv-out=<outFolder>`：指定 DryDB 输出目录。不指定则输出到 CSV 同级目录。
 
-- `--only-csv-to-vkv`：仅执行 CSV 转 VKV，跳过 Ink 处理。需配合 `--vkv-csv` 使用。
+- `--only-csv-to-drydb`：仅执行 CSV 转 DryDB，跳过 Ink 处理。需配合 `--drydb-csv` 使用。
 
 说明：
-- `--vkv-csv` 默认递归搜索（使用 `SearchOption.AllDirectories`）。如需非递归，请指定只包含目标 CSV 的单一目录。
-- 单独使用 `--vkv`（不带 `--vkv-csv`）时，会在正常流程中基于生成的 CSV 产出 VKV 文件。
+- `--drydb-csv` 默认递归搜索（使用 `SearchOption.AllDirectories`）。如需非递归，请指定只包含目标 CSV 的单一目录。
+- 单独使用 `--drydb`（不带 `--drydb-csv`）时，会在正常流程中基于生成的 CSV 产出 DryDB 文件。
 
 - `--retag`：重新生成所有 ID，不保留旧 ID。
 
 - `--help`：显示帮助。
 
-## VKV 数据库
+## DryDB 数据库
 
 ### 简介
 
-VKV（Versioned Key-Value）是一种基于 B+Tree 的键值数据库格式，专为只读场景优化，非常适合游戏运行时的本地化数据存储。
+DryDB 是一种基于 B+Tree 的键值数据库格式，专为只读场景优化，非常适合游戏运行时的本地化数据存储。
 
-项目地址：[hadashiA/VKV](https://github.com/hadashiA/VKV)
+项目地址：[hadashiA/DryDB](https://github.com/hadashiA/DryDB)
+
+说明：当前本项目已统一使用 `DryDB` 包名、命令行参数与 `.drydb` 文件后缀。
 
 ### 优势
 
@@ -111,24 +113,24 @@ VKV（Versioned Key-Value）是一种基于 B+Tree 的键值数据库格式，�
 
 ### 使用示例
 
-**本地化流程中同时生成 VKV：**
+**本地化流程中同时生成 DryDB：**
 ```bash
-InkTagger.exe --folder=inkFiles/ --csv=output/strings.csv --vkv=output/
+InkTagger.exe --folder=inkFiles/ --csv=output/strings.csv --drydb=output/
 ```
 
-**单独将 CSV 转为 VKV：**
+**单独将 CSV 转为 DryDB：**
 ```bash
-InkTagger.exe --only-csv-to-vkv --vkv-csv=localization/ --vkv-csv-out=output/
+InkTagger.exe --only-csv-to-drydb --drydb-csv=localization/ --drydb-csv-out=output/
 ```
 
-**生成无压缩的 VKV 并添加表前缀：**
+**生成无压缩的 DryDB 并添加表前缀：**
 ```bash
-InkTagger.exe --folder=inkFiles/ --csv=output/strings.csv --vkv=output/ --vkv-no-compress --vkv-table-prefix=loc_
+InkTagger.exe --folder=inkFiles/ --csv=output/strings.csv --drydb=output/ --drydb-no-compress --drydb-table-prefix=loc_
 ```
 
 ### 文件结构
 
-每个 CSV 对应一个 `.vkv` 文件，表名取自文件名（可加前缀）。运行时用本地化 ID 作为 key 查询即可获取对应文本。
+每个 CSV 对应一个 `.drydb` 文件，表名取自文件名（可加前缀）。运行时用本地化 ID 作为 key 查询即可获取对应文本。
 
 ## 限制
 
@@ -167,9 +169,9 @@ that will end up saying the same thing.
 ```csharp
 var story = new Story(storyJsonAsset);
 
-// 加载 VKV 数据库
-var vkvPath = Path.Combine(Application.streamingAssetsPath, "strings.vkv");
-var database = await ReadOnlyDatabase.OpenFileAsync(vkvPath);
+// 加载 DryDB 数据库
+var dryDBPath = Path.Combine(Application.streamingAssetsPath, "strings.drydb");
+var database = await ReadOnlyDatabase.OpenFileAsync(dryDBPath);
 var locTable = database.GetTable("your_table_name"); // 表名来自 Ink 文件名
 
 while (story.canContinue) {

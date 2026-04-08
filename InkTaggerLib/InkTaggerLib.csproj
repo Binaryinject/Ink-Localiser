@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="VKV" Version="0.4.2-preview" />
-    <PackageReference Include="VKV.Compression" Version="0.4.2-preview" />
+    <PackageReference Include="DryDB" Version="0.6.0" />
+    <PackageReference Include="DryDB.Compression" Version="0.6.0" />
   </ItemGroup>
 
   <ItemGroup>
