@@ -1,10 +1,10 @@
-﻿<!-- dotnet publish -c Release -r osx-arm64 -o ./publish -->
+<!-- dotnet publish -c Release -r osx-arm64 -o ./publish -->
 
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <Version>0.0.4.0</Version>
+    <Version>0.1.0</Version>
     <TargetFramework>net8.0</TargetFramework>
     <RuntimeIdentifiers>osx-arm64;osx-x64;win-x64;win-x86</RuntimeIdentifiers>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../InkTaggerLib/InkTaggerLib.csproj" />
+    <PackageReference Include="System.CommandLine" Version="2.0.11" />
   </ItemGroup>
 
 </Project>
