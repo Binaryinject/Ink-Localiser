@@ -397,3 +397,6 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 .DS_Store
+
+# inklecate binary: redundant (ink is used via DLLs) and exceeds GitHub 100MB limit
+Lib/Inklecate/inklecate
